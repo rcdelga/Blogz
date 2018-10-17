@@ -6,7 +6,7 @@
 
 	{% for blog in blogs %}
 		<h2><a href="./blog?id={{blog.id}}">{{blog.title}}</a></h2>
-		<p class="datetime">{{blog.post_date}}</p>
+		<p class="datetime">by <a href="./blog?uid={{blog.owner.id}}">{{blog.owner.username}}</a> on {{blog.post_date}}</p>
 		<p>{{blog.body}}</p>
 		<hr />
 	{% endfor %}

@@ -1,15 +1,39 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>Build A Blog</title>
-		<link href="{{ url_for('static',filename='styles/style.css') }}" type="text/css" rel="stylesheet" />
-		<link href="https://fonts.googleapis.com/css?family=Poppins" rel="stylesheet" />
+		<title>Blogz</title>
+		<link href="{{ url_for('static',filename='style.css') }}" type="text/css" rel="stylesheet" />
+		<!-- <link href="static/styles/styles.css" type="text/css" rel="stylesheet" /> -->
 	</head>
-		<body>
-		<div id="navigation">
-			<a href="/blog">Main Page</a>
-			<a href="/newpost">Add A Blog Post</a>
-		</div>
+	<body>		
+<div id="navigation">
+{% if 'username' in session %}
+<a href="/">User List</a>
+<a href="/blog">All Blogs</a>
+<a href="/newpost">Add A Blog Post</a>
+{% endif %}
+<div style='float: right'>
+{% if 'username' in session %}
+{{session['username']}}
+<form action="/logout" method="post">
+<input type="submit" value="Log Out" />
+</form>
+{% else %}
+<a href="login">Login</a> | <a href="signup">Signup</a>
+{% endif %}
+</div>
+</div>
+
+		{% with messages = get_flashed_messages() %}
+			{% if messages %}
+				<ul class=flashes>
+					{% for message in messages %}
+						<li>{{ message }}</li>
+					{% endfor %}
+				</ul>
+			{% endif %}
+		{% endwith %}
+
 		{% block content %}
 
 		{% endblock %}

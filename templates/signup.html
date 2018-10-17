@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+	<form method='POST'>
+		<table>
+			<h1>SignUp</h1>
+			<p>Already a member? Click <a href="/login">Login</a>. </p>
+			<tbody>
+				<tr>
+				  <td><label>Username: </label></td>
+				  <td><input type="text" name="username" value="{{username}}" /></td>
+				  <td class="error">{{username_error}}</td>
+				</tr>
+				<tr>
+				  <td><label>Password: </label></td>
+				  <td><input type="password" name="password1" value="{{password1}}" /></td>
+				  <td class="error">{{password1_error}}</td>
+				</tr>
+				<tr>
+				  <td><label>Password: </label></td>
+				  <td><input type="password" name="password2" value="{{password2}}" /></td>
+				  <td class="error">{{password2_error}}</td>
+				</tr>
+			</tbody>
+		</table>
+		<input type="submit" />	
+	</form>
+{% endblock %}

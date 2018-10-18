@@ -13,6 +13,7 @@
 
   <div class=pagination>
   	<a href="{{ url_for('blog', page=1) }}">First</a>
+  	<a href="{{ url_for('blog', page=blogs.prev_num) }}">Previous</a>
   {%- for page in blogs.iter_pages() %}
     {% if page %}
       {% if page != blogs.page %}
@@ -24,6 +25,7 @@
       <span class=ellipsis>…</span>
     {% endif %}
   {%- endfor %}
+  		<a href="{{ url_for('blog', page=blogs.next_num) }}">Next</a>
     	<a href="{{ url_for('blog', page=blogs.pages) }}">Last</a>
   </div>
 

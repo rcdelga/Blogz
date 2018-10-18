@@ -8,9 +8,7 @@
 <div id="navigation">
 <a href="/">All Users</a>
 <a href="/blog">All Blogs</a>
-{% if 'username' in session %}
 <a href="/newpost">New Post</a>
-{% endif %}
 <div style='float: right'>
 {% if 'username' in session %}
 <form action="/logout" method="post">

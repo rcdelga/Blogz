@@ -1,15 +1,6 @@
 from flask import Flask, request, redirect, render_template, session, flash, make_response
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
-import os
-
-app = Flask(__name__)
-app.config['DEBUG'] = True      # displays runtime errors in the browser, too
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://blogz:password@localhost:8889/blogz'
-app.config['SQLALCHEMY_ECHO'] = True
-
-
-db = SQLAlchemy(app)
 
 def all_active_blogs():
 	return Blog.query.order_by(Blog.post_date.desc()).all()
@@ -35,6 +26,13 @@ def valid_entry(data):
 	else:
 		return False
 
+app = Flask(__name__)
+app.config['DEBUG'] = True
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://blogz:password@localhost:8889/blogz'
+app.config['SQLALCHEMY_ECHO'] = True
+
+db = SQLAlchemy(app)
+
 class Blog(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	title = db.Column(db.String(120))
@@ -51,10 +49,9 @@ class Blog(db.Model):
 			post_date = datetime.now()
 		self.post_date = post_date
 		self.deleted = False
-
 	def __repr__(self):
 		# return '<Post %r>' % self.title
-		return "<Blog(id='%r' title='%r')>" % (self.id, self.title)
+		return "<Blog(id='%r' title='%r' owner='%r')>" % (self.id,self.title,self.owner)
 
 class User(db.Model):
 	id = db.Column(db.Integer,primary_key=True)
@@ -119,16 +116,28 @@ def signup():
 
 @app.route('/login',methods=['GET','POST'])
 def login():
+
 	if request.method == 'POST':
 		username = request.form['username']
 		password = request.form['password']
+
+		u_error = ''
+		pw_error = ''
+
 		user = User.query.filter_by(username=username).first()
-		if user and user.password == password:
+
+		if not user:
+			u_error = "[{0}] not a registered user.".format(username)
+			username = ''
+		if user and user.password != password:
+			pw_error = "Error: Password incorrect."		
+		if not u_error and not pw_error and user and user.password == password:
 			session['username'] = username
 			flash("Success! Logged in!")
-			return redirect('/')
+			return redirect('/newpost')
 		else:
-			flash("Error: Incorrect password or User doesn't exist.")
+			return render_template("login.html",username=username,u_error=u_error,pw_error=pw_error)
+
 	return render_template("login.html")
 
 
@@ -148,19 +157,26 @@ def blog():
 	# return resp
 
 	bid = request.args.get('id')
-	uid = request.args.get('uid')
 
 	if bid:
 		return render_template('id.html',post=get_blog_post(bid))
-
-	if uid:
-		uid_list = Blog.query.filter_by(owner_id=uid).order_by(Blog.post_date.desc()).all()
-		return render_template('blog.html',blogs=uid_list)
-
 	else:
 		resp = make_response(render_template('blog.html',blogs=all_active_blogs(),message=message))
 		resp.set_cookie('visit-count', str(count))
 		return resp
+
+
+
+@app.route('/singleUser')
+def singleUser():
+	uid = request.args.get('uid')
+
+	if uid:
+		user = User.query.filter_by(id=uid).first()
+		uid_list = Blog.query.filter_by(owner_id=uid).order_by(Blog.post_date.desc()).all()
+		return render_template('singleUser.html',user=user,blogs=uid_list)
+	else:
+		return redirect('/')
 
 
 @app.route("/newpost")

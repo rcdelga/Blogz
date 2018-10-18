@@ -158,14 +158,10 @@ def blog():
 
 	bid = request.args.get('id')
 
-	page = request.args.get('page', 1, type=int)
-	blogs = Blog.query.order_by(Blog.post_date.desc()).paginate(per_page=3)
-
 	if bid:
 		return render_template('id.html',post=get_blog_post(bid))
 	else:
-		# resp = make_response(render_template('blog.html',blogs=all_active_blogs(),message=message))
-		resp = make_response(render_template('blog.html',blogs=blogs))
+		resp = make_response(render_template('blog.html',blogs=all_active_blogs(),message=message))
 		resp.set_cookie('visit-count', str(count))
 		return resp
 

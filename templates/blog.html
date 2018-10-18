@@ -4,11 +4,27 @@
 <h1 class="header">Blogz</h1>
 <p class="cookie">{{ message }}</p>
 
-{% for blog in blogs %}
+{% for blog in blogs.items %}
 <h2><a href="./blog?id={{blog.id}}">{{blog.title}}</a></h2>
 <p class="datetime">by <a href="./singleUser?uid={{blog.owner.id}}">{{blog.owner.username}}</a> on {{blog.post_date}}</p>
 <p>{{blog.body}}</p>
 <hr />
 {% endfor %}
+
+  <div class=pagination>
+  	<a href="{{ url_for('blog', page=1) }}">First</a>
+  {%- for page in blogs.iter_pages() %}
+    {% if page %}
+      {% if page != blogs.page %}
+        <a href="{{ url_for('blog', page=page) }}">{{ page }}</a> 
+      {% else %}
+        <strong class="current_page">{{ page }}</strong>
+      {% endif %}
+    {% else %}
+      <span class=ellipsis>…</span>
+    {% endif %}
+  {%- endfor %}
+    	<a href="{{ url_for('blog', page=blogs.pages) }}">Last</a>
+  </div>
 
 {% endblock %}

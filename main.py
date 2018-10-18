@@ -1,68 +1,7 @@
-from flask import Flask, request, redirect, render_template, session, flash, make_response
-from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
-
-def all_active_blogs():
-	return Blog.query.order_by(Blog.post_date.desc()).all()
-
-def get_blog_post(id):
-	return Blog.query.get(id)
-
-def valid_title(data):
-	if 0 < len(data) < 121:
-		return True
-	else:
-		return False
-
-def valid_body(data):
-	if 0 < len(data):
-		return True
-	else:
-		return False
-
-def valid_entry(data):
-	if 2 < len(data) < 21 and " " not in data:
-		return True
-	else:
-		return False
-
-app = Flask(__name__)
-app.config['DEBUG'] = True
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://blogz:password@localhost:8889/blogz'
-app.config['SQLALCHEMY_ECHO'] = True
-
-db = SQLAlchemy(app)
-
-class Blog(db.Model):
-	id = db.Column(db.Integer, primary_key=True)
-	title = db.Column(db.String(120))
-	body = db.Column(db.Text)
-	owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-	post_date = db.Column(db.DateTime)
-	deleted = db.Column(db.Boolean)
-
-	def __init__(self,title,body,owner,post_date=None):
-		self.title = title
-		self.body = body
-		self.owner = owner
-		if post_date is None:
-			post_date = datetime.now()
-		self.post_date = post_date
-		self.deleted = False
-	def __repr__(self):
-		# return '<Post %r>' % self.title
-		return "<Blog(id='%r' title='%r' owner='%r')>" % (self.id,self.title,self.owner)
-
-class User(db.Model):
-	id = db.Column(db.Integer,primary_key=True)
-	username = db.Column(db.String(120),unique=True)
-	password = db.Column(db.String(120))
-	blogs = db.relationship('Blog', backref='owner')
-
-	def __init__(self,username,password):
-		self.username = username
-		self.password = password
-
+from functions import all_active_blogs, get_blog_post, valid_title, valid_body, valid_entry, make_pw_hash, check_pw_hash
+from flask import request, redirect, render_template, session, flash, make_response
+from model import User, Blog
+from app import app, db
 
 @app.before_request
 def require_login():
@@ -217,10 +156,6 @@ def add_post():
 def logout():
     del session['username']
     return redirect('login')
-
-
-
-app.secret_key = "blogz"
 
 if __name__ == "__main__":
 	app.run()

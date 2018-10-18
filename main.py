@@ -66,11 +66,11 @@ class User(db.Model):
 
 @app.before_request
 def require_login():
-	allowed_routes = ['login','signup','blog','index']
+	allowed_routes = ['login','signup','blog','index','singleUser']
 	if (request.endpoint not in allowed_routes
 		and '/static/' not in request.path
 		and 'username' not in session):
-		return redirect('login')
+		return redirect('/')
 
 
 @app.route('/signup',methods=['GET','POST'])

@@ -6,9 +6,9 @@
 </head>
 <body>		
 <div id="navigation">
-{% if 'username' in session %}
 <a href="/">All Users</a>
 <a href="/blog">All Blogs</a>
+{% if 'username' in session %}
 <a href="/newpost">New Post</a>
 {% endif %}
 <div style='float: right'>

@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<h1 class="header">Current Users</h1>
 <ul>
 {% for user in user_list %}
 <li><a href="./singleUser?uid={{user.id}}">{{ user.username }}</a></li>

@@ -21,7 +21,7 @@ def valid_body(data):
 		return False
 
 def valid_entry(data):
-	if 3 < len(data) < 21 and " " not in data:
+	if 2 < len(data) < 21 and " " not in data:
 		return True
 	else:
 		return False
@@ -70,7 +70,7 @@ def require_login():
 	if (request.endpoint not in allowed_routes
 		and '/static/' not in request.path
 		and 'username' not in session):
-		return redirect('/')
+		return redirect('/login')
 
 
 @app.route('/signup',methods=['GET','POST'])
@@ -84,7 +84,7 @@ def signup():
 		password1_error = ''
 		password2_error= ''
 
-		entry_error = "Entry not valid. (4-20 characters with no spaces)"
+		entry_error = "Entry not valid. (3-20 characters with no spaces)"
 		pass_error = "Passwords do not match."
 		registry_error = "[{0}] is already registered."
 

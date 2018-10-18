@@ -3,6 +3,6 @@
 {% block content %}
 <h1 class="header">{{post.title}}</h1>
 
-<p class="datetime">by <a href="./blog?uid={{post.owner.id}}">{{post.owner.username}}</a> on {{post.post_date}}</p>
+<p class="datetime">by <a href="./singleUser?uid={{post.owner.id}}">{{post.owner.username}}</a> on {{post.post_date}}</p>
 <p>{{post.body}}</p>
 {% endblock %}

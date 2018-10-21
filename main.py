@@ -1,82 +1,14 @@
-from flask import Flask, request, redirect, render_template, flash, make_response, session
-from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
-import hashlib
-
-app = Flask(__name__)
-app.config['DEBUG'] = True
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://blogz:password@localhost:8889/blogz'
-app.config['SQLALCHEMY_ECHO'] = True
-app.secret_key = "blogz"
-
-db = SQLAlchemy(app)
-
-def all_active_blogs():
-	return Blog.query.order_by(Blog.post_date.desc()).all()
-
-def get_blog_post(id):
-	return Blog.query.get(id)
-
-def valid_title(data):
-	if 0 < len(data) < 121:
-		return True
-	else:
-		return False
-
-def valid_body(data):
-	if 0 < len(data):
-		return True
-	else:
-		return False
-
-def valid_entry(data):
-	if 2 < len(data) < 21 and " " not in data:
-		return True
-	else:
-		return False
-		
-def make_pw_hash(password):
-    return hashlib.sha256(str.encode(password)).hexdigest()
-
-def check_pw_hash(password, hash):
-    if make_pw_hash(password) == hash:
-        return True
-    return False
-
-class Blog(db.Model):
-	id = db.Column(db.Integer, primary_key=True)
-	title = db.Column(db.String(120))
-	body = db.Column(db.Text)
-	owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-	post_date = db.Column(db.DateTime)
-	deleted = db.Column(db.Boolean)
-
-	def __init__(self,title,body,owner,post_date=None):
-		self.title = title
-		self.body = body
-		self.owner = owner
-		if post_date is None:
-			post_date = datetime.now()
-		self.post_date = post_date
-		self.deleted = False
-	def __repr__(self):
-		# return '<Post %r>' % self.title
-		return "<Blog(id='%r' title='%r' owner='%r')>" % (self.id,self.title,self.owner)
-
-class User(db.Model):
-	id = db.Column(db.Integer,primary_key=True)
-	username = db.Column(db.String(120),unique=True)
-	password = db.Column(db.String(120))
-	blogs = db.relationship('Blog', backref='owner')
-
-	def __init__(self,username,password):
-		self.username = username
-		self.password = make_pw_hash(password)
+from model import Blog, User, get_blog_post, make_pw_hash, check_pw_hash, add_user
+from flask import request, redirect, render_template, flash, make_response, session
+from functions import valid_title, valid_body, no_form_errors
+from app import app, db
 
 
 @app.before_request
 def require_login():
+
 	allowed_routes = ['login','signup','blog','index','singleUser']
+	
 	if (request.endpoint not in allowed_routes
 		and '/static/' not in request.path
 		and 'username' not in session):
@@ -85,52 +17,33 @@ def require_login():
 
 @app.route('/signup',methods=['GET','POST'])
 def signup():
+
 	if request.method == 'POST':
-		username = request.form['username']
-		password1 = request.form['password1']
-		password2 = request.form['password2']
 
-		username_error = ''
-		password1_error = ''
-		password2_error= ''
+		entries = {'username':request.form['username'],
+					'password1':request.form['password1'],
+					'password2':request.form['password2']}
 
-		entry_error = "Entry not valid. (3-20 characters with no spaces)"
-		pass_error = "Passwords do not match."
-		registry_error = "[{0}] is already registered."
+		errors = {'username_error':'',
+				'password1_error':'',
+				'password2_error':''}
 
-		if not valid_entry(username):
-			username = ''
-			username_error = entry_error
-		if not valid_entry(password1):
-			password1_error = entry_error
-		if not valid_entry(password2):
-			password2_error = entry_error
-		if  password1 != password2:
-			password1_error = pass_error
-			password2_error = pass_error
-		if not username_error and not password1_error and not password2_error:
-			existing_user = User.query.filter_by(username=username).first()			
-			if not existing_user:
-				user = User(username=username,password=password1)
-				db.session.add(user)
-				db.session.commit()
-				session['username'] = user.username
-				return redirect('/blog')
-			else:
-				username_error = registry_error.format(username)
-				username = ''	
-		return render_template('signup.html',username=username,username_error=username_error,password1_error=password1_error,password2_error=password2_error)
-	else:
-		return render_template('signup.html')
+		if no_form_errors(entries,errors):
+			add_user(entries['username'],entries['password1'])
+			return redirect('/blog')
+		return render_template('signup.html', **entries, **errors)
+	return render_template('signup.html')
 
 
 @app.route('/login',methods=['GET','POST'])
 def login():
 
 	if request.method == 'POST':
+		# entries = {'username':request.form['username'], 'password':request.form['password']}
+		# errors = {'username_error':request.form['username'],'password_error':request.form['password']}
+		
 		username = request.form['username']
 		password = request.form['password']
-
 		u_error = ''
 		pw_error = ''
 

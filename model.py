@@ -1,7 +1,6 @@
 from datetime import datetime
 from app import db
 import hashlib
-from flask import session
 
 class Blog(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
@@ -20,7 +19,6 @@ class Blog(db.Model):
 		self.post_date = post_date
 		self.deleted = False
 	def __repr__(self):
-		# return '<Post %r>' % self.title
 		return "<Blog(id='%r' title='%r' owner='%r')>" % (self.id,self.title,self.owner)
 
 class User(db.Model):
@@ -37,29 +35,18 @@ class User(db.Model):
 def make_pw_hash(password):
     return hashlib.sha256(str.encode(password)).hexdigest()
 
-def check_pw_hash(password, hash):
-    if make_pw_hash(password) == hash:
-        return True
-    return False
-
 def existing_user(username):
-	if User.query.filter_by(username=username).first():
-		return True
-	return False
-
-def set_user(user):
-	if existing_user(user):
-		return user.username
-	return False
+	return User.query.filter_by(username=username).first()
 
 def add_user(username,password):	
-	user = User(username,password)
-	db.session.add(user)
+	db.session.add(User(username,password))
 	db.session.commit()
-	session['username'] = user.username
 
 def all_active_blogs():
 	return Blog.query.order_by(Blog.post_date.desc()).all()
 
 def get_blog_post(id):
 	return Blog.query.get(id)
+
+def get_all_users():
+	return User.query.all()

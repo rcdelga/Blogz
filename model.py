@@ -1,6 +1,8 @@
 from datetime import datetime
 from app import db
 import hashlib
+import random
+import string
 
 class Blog(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
@@ -19,7 +21,7 @@ class Blog(db.Model):
 		self.post_date = post_date
 		self.deleted = False
 	def __repr__(self):
-		return "<Blog(id='%r' title='%r' owner='%r')>" % (self.id,self.title,self.owner)
+		return "<Blog %r %r by %r>" % (self.id,self.title,self.owner.username)
 
 class User(db.Model):
 	id = db.Column(db.Integer,primary_key=True)
@@ -31,9 +33,24 @@ class User(db.Model):
 		self.username = username
 		self.password = make_pw_hash(password)
 
+	def __repr__(self):
+		return "<User %r %r>" % (self.id, self.username)
 
-def make_pw_hash(password):
-    return hashlib.sha256(str.encode(password)).hexdigest()
+
+def make_salt():
+	return ''.join([random.choice(string.ascii_letters) for x in range(5)])
+
+def make_pw_hash(password, salt=None):
+	if not salt:
+		salt = make_salt()
+	hash = hashlib.sha256(str.encode(password)).hexdigest()
+	return '{0},{1}'.format(hash, salt)
+
+def check_pw_hash(password, hash):
+	salt = hash.split(',')[1]
+	if make_pw_hash(password, salt) == hash:
+		return True
+	return False
 
 def existing_user(username):
 	return User.query.filter_by(username=username).first()

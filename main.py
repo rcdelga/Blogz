@@ -1,6 +1,8 @@
-from model import Blog, User, get_blog_post, add_user, existing_user, get_all_users, make_pw_hash
+from model import Blog, User, get_blog_post, add_user, existing_user, get_all_users, make_pw_hash, make_salt, check_pw_hash
 from flask import request, redirect, render_template, flash, make_response, session
 from app import app, db
+import random
+import string
 
 
 @app.before_request
@@ -52,7 +54,7 @@ def login():
 		# errors = {'username_error':'','password_error':''}
 		
 		username = request.form['username']
-		password = make_pw_hash(request.form['password'])
+		password = request.form['password']
 		u_error = ''
 		pw_error = ''
 
@@ -61,9 +63,9 @@ def login():
 		if not user:
 			u_error = "[{0}] not a registered user.".format(username)
 			username = ''
-		if user and user.password != password:
+		if user and not check_pw_hash(password,user.password):
 			pw_error = "Error: Password incorrect."		
-		if not u_error and not pw_error and user and password == user.password:
+		if not u_error and not pw_error and user and check_pw_hash(password,user.password):
 			session['username'] = username
 			flash("Success! Logged in!")
 			return redirect('/newpost')
@@ -107,8 +109,7 @@ def singleUser():
 		user = User.query.filter_by(id=uid).first()
 		uid_list = Blog.query.filter_by(owner_id=uid).order_by(Blog.post_date.desc()).all()
 		return render_template('singleUser.html',user=user,blogs=uid_list)
-	else:
-		return redirect('/')
+	return redirect('/')
 
 
 @app.route("/newpost", methods=['GET','POST'])
